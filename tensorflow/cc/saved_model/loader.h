@@ -21,6 +21,7 @@ limitations under the License.
 #include <string>
 #include <unordered_set>
 
+#include "tensorflow/core/platform/macros.h"
 #include "tensorflow/core/lib/core/status.h"
 #include "tensorflow/core/protobuf/graph_debug_info.pb.h"
 #include "tensorflow/core/protobuf/meta_graph.pb.h"
@@ -29,9 +30,9 @@ limitations under the License.
 namespace tensorflow {
 
 /// Represents a SavedModel that is loaded from storage.
-class SavedModelBundleInterface {
+TF_EXPORT class SavedModelBundleInterface {
  public:
-  virtual ~SavedModelBundleInterface();
+  TF_EXPORT virtual ~SavedModelBundleInterface();
 
   /// Returns the TensorFlow Session that can be used to interact with the
   /// SavedModel.
@@ -46,18 +47,18 @@ class SavedModelBundleInterface {
 ///
 /// NOTE: Prefer to use SavedModelBundleLite in new code, as it consumes less
 /// RAM.
-struct SavedModelBundle : public SavedModelBundleInterface {
+TF_EXPORT struct SavedModelBundle : public SavedModelBundleInterface {
   /// A TensorFlow Session does not Close itself on destruction. To avoid
   /// resource leaks, we explicitly call Close on Sessions that we create.
-  ~SavedModelBundle() override {
+  TF_EXPORT ~SavedModelBundle() override {
     if (session) {
       session->Close().IgnoreError();
     }
   }
 
-  SavedModelBundle() = default;
+  TF_EXPORT SavedModelBundle() = default;
 
-  Session* GetSession() const override { return session.get(); }
+  TF_EXPORT Session* GetSession() const override { return session.get(); }
   const protobuf::Map<string, SignatureDef>& GetSignatures() const override {
     return meta_graph_def.signature_def();
   }
@@ -71,22 +72,22 @@ struct SavedModelBundle : public SavedModelBundleInterface {
 // MetaGraphDef. Prefer to use SavedModelBundleLite in new code.
 class SavedModelBundleLite : public SavedModelBundleInterface {
  public:
-  SavedModelBundleLite() = default;
+  TF_EXPORT SavedModelBundleLite() = default;
   SavedModelBundleLite& operator=(SavedModelBundleLite&& other) = default;
 
-  SavedModelBundleLite(std::unique_ptr<Session> session,
+  TF_EXPORT SavedModelBundleLite(std::unique_ptr<Session> session,
                        protobuf::Map<string, SignatureDef> signatures)
       : session_(std::move(session)), signatures_(std::move(signatures)) {}
 
   /// A TensorFlow Session does not Close itself on destruction. To avoid
   /// resource leaks, we explicitly call Close on Sessions that we create.
-  ~SavedModelBundleLite() override {
+  TF_EXPORT ~SavedModelBundleLite() override {
     if (session_) {
       session_->Close().IgnoreError();
     }
   }
 
-  Session* GetSession() const override { return session_.get(); }
+  TF_EXPORT Session* GetSession() const override { return session_.get(); }
   const protobuf::Map<string, SignatureDef>& GetSignatures() const override {
     return signatures_;
   }
@@ -102,7 +103,7 @@ class SavedModelBundleLite : public SavedModelBundleInterface {
 /// *bundle with a session and the requested MetaGraphDef, if found.
 ///
 /// NOTE: Prefer the overload that takes a SavedModelBundleLite* in new code.
-Status LoadSavedModel(const SessionOptions& session_options,
+TF_EXPORT Status LoadSavedModel(const SessionOptions& session_options,
                       const RunOptions& run_options, const string& export_dir,
                       const std::unordered_set<string>& tags,
                       SavedModelBundle* const bundle);
@@ -114,7 +115,7 @@ Status LoadSavedModel(const SessionOptions& session_options,
 ///
 /// This overload creates a SavedModelBundleLite, which consumes less RAM than
 /// an equivalent SavedModelBundle.
-Status LoadSavedModel(const SessionOptions& session_options,
+TF_EXPORT Status LoadSavedModel(const SessionOptions& session_options,
                       const RunOptions& run_options, const string& export_dir,
                       const std::unordered_set<string>& tags,
                       SavedModelBundleLite* const bundle);
